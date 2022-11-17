@@ -40,4 +40,4 @@ Labels are strings that don't start with a `#` and don't contain whitespace or `
 
 ## Build
 
-To build from source, [install Rust](https://www.rust-lang.org/learn/get-started) and run `cargo build`. An executable will be created under `target/` under your architechter. You can run it with `cargo run <source file> <object file> [-l]`, or just run the executable directly `./alarmas <source file> <object file> [-l]`. `<source file>` is a path to an assembly source file, `<object file>` is a path to an object file that the assembler to write to, and the `-l` prints a listing to standard error.
+To build from source, [install Rust](https://www.rust-lang.org/learn/get-started) and run `cargo build --release`. An executable will be created under `target/release/`. You can run it with `cargo run --release <source file> <object file> [-l]`, or just run the executable directly `alarmas <source file> <object file> [-l]`. `<source file>` is a path to an assembly source file, `<object file>` is a path to an object file that the assembler to write to, and the `-l` prints a listing to standard error.
