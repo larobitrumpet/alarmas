@@ -176,16 +176,30 @@ fn register_to_string(r: &Reg) -> String {
 }
 
 fn parse_signed(s: &str, base: u32) -> Option<u16> {
-    if s.chars().nth(0).unwrap() == '-' {
-        parse_base(&s[1..], base).and_then(|n| Some(!n + 1 & 0b00001111_11111111))
-    } else {
-        parse_base(&s, base)
+    match s.chars().nth(0) {
+        Some(x) => {
+            if x == '-' {
+                parse_base(&s[1..], base).and_then(
+                    |n| Some(!n + 1 & 0b00001111_11111111)
+                    )
+            } else {
+                parse_base(&s, base)
+            }
+        },
+        None => None,
     }
 }
 
 fn parse_base(s: &str, base: u32) -> Option<u16> {
     match u16::from_str_radix(s, base) {
-        Ok(n) => Some(n),
+        Ok(n) => {
+            if n <= 0b00001111_11111111 {
+                Some(n)
+            } else {
+                eprintln!("Immediate value `{}` cannot fit into 12 bits", s);
+                process::exit(1);
+            }
+        },
         Err(e) => {
             if *e.kind() == PosOverflow {
                 eprintln!("Immediate value `{}` cannot fit into 12 bits", s);
@@ -199,20 +213,25 @@ fn parse_base(s: &str, base: u32) -> Option<u16> {
 }
 
 fn to_immediate(s: &str) -> Option<u16> {
-    match s.chars().nth(0).unwrap() {
-        '0' => {
-            match s.chars().nth(1) {
-                Some('b') => parse_signed(&s[2..], 2),
-                Some('x') => parse_signed(&s[2..], 16),
-                None => Some(0),
+    match s.chars().nth(0) {
+        Some(x) => {
+            match x {
+                '0' => {
+                    match s.chars().nth(1) {
+                        Some('b') => parse_signed(&s[2..], 2),
+                        Some('x') => parse_signed(&s[2..], 16),
+                        None => Some(0),
+                        _ => None,
+                    }
+                }
+                '1'..='9' | '-' => parse_signed(&s, 10),
+                '#' => parse_signed(&s[1..], 10),
+                '$' => parse_signed(&s[1..], 16),
+                '%' => parse_signed(&s[1..], 2),
                 _ => None,
             }
         }
-        '1'..='9' | '-' => parse_signed(&s, 10),
-        '#' => parse_signed(&s[1..], 10),
-        '$' => parse_signed(&s[1..], 16),
-        '%' => parse_signed(&s[1..], 2),
-        _ => None,
+        None => None,
     }
 }
 
