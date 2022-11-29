@@ -175,117 +175,44 @@ fn register_to_string(r: &Reg) -> String {
     }
 }
 
-fn to_immediate(s: &str) -> Option<u16> {
-    if s.as_bytes()[0] == "#".as_bytes()[0] {
-        if s.as_bytes()[1] == "-".as_bytes()[0] {
-            let ns = &s[2..];
-            match ns.parse::<u16>() {
-                Ok(n) => Some((!n + 1) & 0b00001111_11111111),
-                Err(e) => {
-                    if *e.kind() == PosOverflow {
-                        eprintln!(
-                            "Immediate value `{}` cannot fit into 12 bits", s
-                        );
-                        process::exit(1);
-                    } else {
-                        eprint!("Parsing immediate value `{}` ", s);
-                        eprintln!("failed with error:\n{}", e);
-                        process::exit(1);
-                    }
-                }
-            }
-        } else {
-            let ns = &s[1..];
-            match ns.parse::<u16>() {
-                Ok(n) => Some(n),
-                Err(e) => {
-                    if *e.kind() == PosOverflow {
-                        eprintln!(
-                            "Immediate value `{}` cannot fit into 12 bits", s
-                        );
-                        process::exit(1);
-                    } else {
-                        eprint!("Parsing immediate value `{}` ", s);
-                        eprintln!("failed with error:\n{}", e);
-                        process::exit(1);
-                    }
-                }
-            }
-        }
-    } else if s.as_bytes()[0] == "$".as_bytes()[0] {
-        if s.as_bytes()[1] == "-".as_bytes()[0] {
-            let ns = &s[2..];
-            match u16::from_str_radix(ns, 16) {
-                Ok(n) => Some((!n + 1) & 0b00001111_11111111),
-                Err(e) => {
-                    if *e.kind() == PosOverflow {
-                        eprintln!(
-                            "Immediate value `{}` cannot fit into 12 bits", s
-                        );
-                        process::exit(1);
-                    } else {
-                        eprint!("Parsing immediate value `{}` ", s);
-                        eprintln!("failed with error:\n{}", e);
-                        process::exit(1);
-                    }
-                }
-            }
-        } else {
-            let ns = &s[1..];
-            match u16::from_str_radix(ns, 16) {
-                Ok(n) => Some(n),
-                Err(e) => {
-                    if *e.kind() == PosOverflow {
-                        eprintln!(
-                            "Immediate value `{}` cannot fit into 12 bits", s
-                        );
-                        process::exit(1);
-                    } else {
-                        eprint!("Parsing immediate value `{}` ", s);
-                        eprintln!("failed with error:\n{}", e);
-                        process::exit(1);
-                    }
-                }
-            }
-        }
-    } else if s.as_bytes()[0] == "%".as_bytes()[0] {
-        if s.as_bytes()[1] == "-".as_bytes()[0] {
-            let ns = &s[2..];
-            match u16::from_str_radix(ns, 2) {
-                Ok(n) => Some((!n + 1) & 0b00001111_11111111),
-                Err(e) => {
-                    if *e.kind() == PosOverflow {
-                        eprintln!(
-                            "Immediate value `{}` cannot fit into 12 bits", s
-                        );
-                        process::exit(1);
-                    } else {
-                        eprint!("Parsing immediate value `{}` ", s);
-                        eprintln!("failed with error:\n{}", e);
-                        process::exit(1);
-                    }
-                }
-            }
-        } else {
-            let ns = &s[1..];
-            match u16::from_str_radix(ns, 2) {
-                Ok(n) => Some(n),
-                Err(e) => {
-                    if *e.kind() == PosOverflow {
-                        eprintln!(
-                            "Immediate value `{}` cannot fit into 12 bits", s
-                        );
-                        process::exit(1);
-                    } else {
-                        eprint!("Parsing immediate value `{}` ", s);
-                        eprintln!("failed with error:\n{}", e);
-                        process::exit(1);
-                    }
-                }
-            }
-        }
+fn parse_signed(s: &str, base: u32) -> Option<u16> {
+    if s.chars().nth(0).unwrap() == '-' {
+        parse_base(&s[1..], base).and_then(|n| Some(!n + 1 & 0b00001111_11111111))
     } else {
-        None
+        parse_base(&s, base)
+    }
+}
+
+fn parse_base(s: &str, base: u32) -> Option<u16> {
+    match u16::from_str_radix(s, base) {
+        Ok(n) => Some(n),
+        Err(e) => {
+            if *e.kind() == PosOverflow {
+                eprintln!("Immediate value `{}` cannot fit into 12 bits", s);
+            } else {
+                eprint!("Parsing immediate value `{}` ", s);
+                eprintln!("failed with error:\n{}", e);
+            }
+            process::exit(1);
+        }
+    }
+}
+
+fn to_immediate(s: &str) -> Option<u16> {
+    match s.chars().nth(0).unwrap() {
+        '0' => {
+            match s.chars().nth(1).unwrap() {
+                'b' => parse_signed(&s[2..], 2),
+                'x' => parse_signed(&s[2..], 16),
+                // '1'..='9' => parse_signed(&s, 10),
+                _ => None,
+            }
+        }
+        '1'..='9' | '-' => parse_signed(&s, 10),
+        '#' => parse_signed(&s[1..], 10),
+        '$' => parse_signed(&s[1..], 16),
+        '%' => parse_signed(&s[1..], 2),
+        _ => None,
     }
 }
 
