@@ -201,9 +201,10 @@ fn parse_base(s: &str, base: u32) -> Option<u16> {
 fn to_immediate(s: &str) -> Option<u16> {
     match s.chars().nth(0).unwrap() {
         '0' => {
-            match s.chars().nth(1).unwrap() {
-                'b' => parse_signed(&s[2..], 2),
-                'x' => parse_signed(&s[2..], 16),
+            match s.chars().nth(1) {
+                Some('b') => parse_signed(&s[2..], 2),
+                Some('x') => parse_signed(&s[2..], 16),
+                None => Some(0),
                 _ => None,
             }
         }
