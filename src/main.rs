@@ -587,14 +587,18 @@ fn assemble(thing: &Vec<Vec<Token>>, table: &HashMap<String, u16>,
                     }
                 },
                 InstructionType::TwoReg => {
-                    if let Token::Register(rd) = &thing[i][1] {
-                        let rgd = register_number(rd) << 3;
-                        if let Token::Register(rn) = &thing[i][2] {
-                            let rgn = register_number(rn) << 6;
-                            args = format!("{} {}", register_to_string(rd),
-                                register_to_string(rn));
-                            word |= rgd;
-                            word |= rgn;
+                    if let Token::Register(r1) = &thing[i][1] {
+                        let rg1 = register_number(r1);
+                        if let Token::Register(r2) = &thing[i][2] {
+                            let rg2 = register_number(r2);
+                            args = format!("{} {}", register_to_string(r1),
+                                register_to_string(r2));
+                            let (rg1, rg2) = match inst {
+                                Operation::CMP => (rg1 << 6, rg2),
+                                _ => (rg1 << 3, rg2 << 6),
+                            };
+                            word |= rg1;
+                            word |= rg2;
                         }
                     }
                 },
