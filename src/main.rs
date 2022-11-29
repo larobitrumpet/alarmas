@@ -204,7 +204,6 @@ fn to_immediate(s: &str) -> Option<u16> {
             match s.chars().nth(1).unwrap() {
                 'b' => parse_signed(&s[2..], 2),
                 'x' => parse_signed(&s[2..], 16),
-                // '1'..='9' => parse_signed(&s, 10),
                 _ => None,
             }
         }
