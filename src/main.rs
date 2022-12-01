@@ -374,7 +374,7 @@ fn opcode(op: &Operation, i: &InstructionType) -> u16 {
         (Operation::ROR, InstructionType::ThreeReg) => 0b001_1110_000000000,
         (Operation::CMP, InstructionType::TwoReg) => 0b001_1111_000000000,
         (Operation::B, InstructionType::Im) => 0b01_00_0000_00000000,
-        (Operation::BEQ, InstructionType::Im) => 0b01_01_0000_00000000,
+        (Operation::BEQ, InstructionType::Im) => 0b01_10_0000_00000000,
         (Operation::BNE, InstructionType::Im) => 0b01_11_0000_00000000,
         (Operation::MOV, InstructionType::RegIm) => 0b1_000_0000_00000000,
         _ => {
